@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { PartnerModules } from './components/PartnerModules';
 import { ServicesShowcase } from './components/ServicesShowcase';
-import { Estimator } from './components/Estimator';
 import { AboutUs } from './components/AboutUs';
 import { Footer } from './components/Footer';
 import { QuotationModal } from './components/QuotationModal';
@@ -41,12 +40,6 @@ export default function App() {
     } else {
       setQuoteRole(activeRole);
     }
-    setIsQuoteOpen(true);
-  };
-
-  const handleOpenQuoteWithParams = (role: PartnerRole, _service: string) => {
-    setActiveRole(role);
-    setQuoteRole(role);
     setIsQuoteOpen(true);
   };
 
@@ -96,11 +89,6 @@ export default function App() {
         <ServicesShowcase
           onSelectServiceRole={setActiveRole}
           onOpenQuote={handleOpenQuote}
-        />
-
-        {/* Quick Estimator Tool */}
-        <Estimator
-          onOpenQuoteWithParams={handleOpenQuoteWithParams}
         />
 
         {/* Who We Are & Experience */}
