@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { PartnerModules } from './components/PartnerModules';
@@ -8,6 +8,7 @@ import { Footer } from './components/Footer';
 import { QuotationModal } from './components/QuotationModal';
 import { WhatsAppWidget } from './components/WhatsAppWidget';
 import { ConfigModal } from './components/ConfigModal';
+import { LoginModal, checkAdminSession, clearAdminSession } from './components/LoginModal';
 import { PartnerRole, CompanyConfig } from './types';
 import { DEFAULT_CONFIG } from './data/partners';
 
@@ -16,6 +17,7 @@ export default function App() {
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
   const [quoteRole, setQuoteRole] = useState<PartnerRole>('sistemas');
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   // Load config from localStorage if available
   const [config, setConfig] = useState<CompanyConfig>(() => {
@@ -52,9 +54,32 @@ export default function App() {
   };
 
   const handleOpenWhatsApp = () => {
-    // Open default whatsapp with general phone
     const text = encodeURIComponent('Hola SISCAT, deseo comunicarme con un especialista para consultar servicios de consultoría e ingeniería.');
     window.open(`https://wa.me/${config.generalPhone}?text=${text}`, '_blank');
+  };
+
+  // When gear icon is clicked: check if admin session is active
+  const handleOpenConfig = () => {
+    if (checkAdminSession()) {
+      // Session still valid, open config directly
+      setIsConfigOpen(true);
+    } else {
+      // No valid session, show login first
+      setIsLoginOpen(true);
+    }
+  };
+
+  // When login succeeds, open config modal
+  const handleLoginSuccess = () => {
+    setIsLoginOpen(false);
+    setIsConfigOpen(true);
+  };
+
+  // When config is closed, optionally clear session (keep active for convenience)
+  const handleCloseConfig = () => {
+    setIsConfigOpen(false);
+    // Uncomment the next line if you want session to expire on modal close:
+    // clearAdminSession();
   };
 
   return (
@@ -64,7 +89,7 @@ export default function App() {
       <Header
         config={config}
         onOpenQuote={handleOpenQuote}
-        onOpenConfig={() => setIsConfigOpen(true)}
+        onOpenConfig={handleOpenConfig}
         onOpenWhatsApp={handleOpenWhatsApp}
       />
 
@@ -102,7 +127,7 @@ export default function App() {
       <Footer
         config={config}
         onOpenQuote={handleOpenQuote}
-        onOpenConfig={() => setIsConfigOpen(true)}
+        onOpenConfig={handleOpenConfig}
       />
 
       {/* Dynamic Quotation Modal */}
@@ -116,10 +141,17 @@ export default function App() {
       {/* Floating Multi-Partner WhatsApp Widget */}
       <WhatsAppWidget config={config} />
 
-      {/* Settings Modal (Customize Emails & Numbers) */}
+      {/* Admin Login Modal (shown before Config if session expired) */}
+      <LoginModal
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+      />
+
+      {/* Settings Modal (Customize Emails & Numbers) - Protected by Login */}
       <ConfigModal
         isOpen={isConfigOpen}
-        onClose={() => setIsConfigOpen(false)}
+        onClose={handleCloseConfig}
         config={config}
         onSaveConfig={handleSaveConfig}
       />
